@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:expressions/expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,17 +51,62 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   double _calculateResult(String expression) {
-  // Reemplazar la coma por un punto
-  expression = expression.replaceAll(',', '.');
+    // Reemplazar la coma por un punto
+    expression = expression.replaceAll(',', '.');
 
-  // Evaluar la expresión
-  // Evaluar la expresión
-try {
-  return _simpleEval(expression); // Llamar a la función de evaluación simple
-} catch (e) {
-  throw Exception('Error al evaluar la expresión');
-}
-}
+    // Evaluar la expresión
+    try {
+      return _simpleEval(expression);
+    } catch (e) {
+      throw Exception('Error al evaluar la expresión');
+    }
+  }
+
+  double _simpleEval(String expression) {
+    // Asegurarse de que la expresión no esté vacía
+    if (expression.isEmpty) {
+      throw Exception('Expresión vacía');
+    }
+
+    // Dividir la expresión en partes (números y operadores)
+    final parts = expression
+        .split(RegExp(r'(\+|\-|\*|\/)'))
+        .map((part) => part.trim())
+        .toList();
+
+    // Comprobar que la expresión tenga al menos un número
+    if (parts.isEmpty || parts.length < 3) {
+      throw Exception('Expresión inválida');
+    }
+
+    double result = double.parse(parts[0]);
+
+    for (int i = 1; i < parts.length; i += 2) {
+      final operator = parts[i];
+      final nextValue = double.parse(parts[i + 1]);
+
+      switch (operator) {
+        case '+':
+          result += nextValue;
+          break;
+        case '-':
+          result -= nextValue;
+          break;
+        case '*':
+          result *= nextValue;
+          break;
+        case '/':
+          if (nextValue == 0) {
+            throw Exception('División por cero');
+          }
+          result /= nextValue;
+          break;
+        default:
+          throw Exception('Operador desconocido');
+      }
+    }
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +123,7 @@ try {
             color: Colors.white, // Color de fondo del campo
             child: Text(
               _expression, // Aquí se puede mostrar el resultado
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 48,
                 color: Colors.black, // Color del texto
               ),
@@ -123,14 +167,8 @@ try {
                   children: [
                     _buildButton('C'), // Botón para limpiar
                     _buildButton('0'),
-                    _buildButton(','),
-                    _buildButton('+'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
                     _buildButton('='),
+                    _buildButton('+'),
                   ],
                 ),
               ],
@@ -141,57 +179,20 @@ try {
     );
   }
 
-  // Método para construir un botón
   Widget _buildButton(String label) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
-        onPressed: () {
-          _onButtonPressed(label);
-        },
+        onPressed: () => _onButtonPressed(label),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.grey[300],
-          fixedSize: const Size(70, 70), // Color del texto del botón
+          foregroundColor: Colors.black, backgroundColor: Colors.grey[300],
+          minimumSize: const Size(64, 64), // Color del texto del botón
         ),
-        child: Text(label),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 24),
+        ),
       ),
     );
   }
-}
-
-class ExpressionEvaluator {
-  const ExpressionEvaluator();
-}
-
-extension on String {
-  parse(String expression) {}
-}
-double _simpleEval(String expression) {
-  final parts = expression.split(RegExp(r'(\+|\-|\*|\/)'));
-  double result = double.parse(parts[0]);
-
-  for (int i = 1; i < parts.length; i += 2) {
-  final operator = parts[i];
-  final nextValue = double.parse(parts[i + 1]);
-
-  switch (operator) {
-    case '+':
-      result += nextValue;
-      break;
-    case '-':
-      result -= nextValue;
-      break;
-    case '*':
-      result *= nextValue;
-      break;
-    case '/':
-      if (nextValue == 0) {
-        throw Exception('División por cero');
-      }
-      result /= nextValue;
-      break;
-  }
-}
-return result;
 }
