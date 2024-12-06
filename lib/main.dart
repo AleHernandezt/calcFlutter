@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expressions/expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
         try {
           _expression = _calculateResult(_expression).toString();
         } catch (e) {
-          _expression = 'Error';
+          _expression = 'SintaxError';
         }
       } else {
         if (_expression == '0') {
@@ -50,62 +51,22 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  double _calculateResult(String expression) {
+  String _calculateResult(String expression) {
     // Reemplazar la coma por un punto
     expression = expression.replaceAll(',', '.');
 
     // Evaluar la expresión
     try {
-      return _simpleEval(expression);
-    } catch (e) {
-      throw Exception('Error al evaluar la expresión');
-    }
-  }
-
-  double _simpleEval(String expression) {
-    // Asegurarse de que la expresión no esté vacía
-    if (expression.isEmpty) {
-      throw Exception('Expresión vacía');
-    }
-
-    // Dividir la expresión en partes (números y operadores)
-    final parts = expression
-        .split(RegExp(r'(\+|\-|\*|\/)'))
-        .map((part) => part.trim())
-        .toList();
-
-    // Comprobar que la expresión tenga al menos un número
-    if (parts.isEmpty || parts.length < 3) {
-      throw Exception('Expresión inválida');
-    }
-
-    double result = double.parse(parts[0]);
-
-    for (int i = 1; i < parts.length; i += 2) {
-      final operator = parts[i];
-      final nextValue = double.parse(parts[i + 1]);
-
-      switch (operator) {
-        case '+':
-          result += nextValue;
-          break;
-        case '-':
-          result -= nextValue;
-          break;
-        case '*':
-          result *= nextValue;
-          break;
-        case '/':
-          if (nextValue == 0) {
-            throw Exception('División por cero');
-          }
-          result /= nextValue;
-          break;
-        default:
-          throw Exception('Operador desconocido');
+      const evaluator = ExpressionEvaluator();
+      final parsedExpression = Expression.parse(expression);
+      final result = evaluator.eval(parsedExpression, {});
+      if (result is double && result.isInfinite) {
+        return 'Error profe alexis';
       }
+      return result.toString();
+    } catch (e) {
+      return 'SintaxError';
     }
-    return result;
   }
 
   @override
@@ -113,28 +74,26 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calculadora'),
-        backgroundColor: Colors.grey[800], // Color de fondo del AppBar
+        backgroundColor: Colors.grey[800],
       ),
       body: Column(
         children: [
-          // Campo para mostrar los números
           Container(
             padding: const EdgeInsets.all(16.0),
-            color: Colors.white, // Color de fondo del campo
+            color: Colors.white,
             child: Text(
-              _expression, // Aquí se puede mostrar el resultado
+              _expression,
               style: const TextStyle(
                 fontSize: 48,
-                color: Colors.black, // Color del texto
+                color: Colors.black,
               ),
             ),
           ),
-          const SizedBox(height: 10), // Espacio entre el campo y los botones
+          const SizedBox(height: 10),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Fila de botones
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -165,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildButton('C'), // Botón para limpiar
+                    _buildButton('C'),
                     _buildButton('0'),
                     _buildButton('='),
                     _buildButton('+'),
@@ -185,8 +144,9 @@ class _MyHomePageState extends State<MyHomePage> {
       child: ElevatedButton(
         onPressed: () => _onButtonPressed(label),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black, backgroundColor: Colors.grey[300],
-          minimumSize: const Size(64, 64), // Color del texto del botón
+          foregroundColor: Colors.black,
+          backgroundColor: Colors.grey[300],
+          minimumSize: const Size(64, 64),
         ),
         child: Text(
           label,
